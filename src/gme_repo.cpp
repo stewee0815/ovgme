@@ -683,7 +683,7 @@ void GME_RepoDnl_OnErr(const char* url)
 {
   HWND hpb = GetDlgItem(g_hwndRepUpd, PBM_DONWLOAD);
   SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
-  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- Kio/s");
+  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
   GME_RepoDnl_SetItemProgress(g_GME_ReposDnl_List[g_ReposQry_Id].name, -1);
 }
 
@@ -699,11 +699,54 @@ bool GME_RepoDnl_OnDnl(unsigned percent, unsigned rate)
   return (g_ReposQry_Cancel == false);
 }
 
+static int GME_RepoDnl_OnDnlCurl(void *p,
+                    curl_off_t dltotal, curl_off_t dlnow,
+                    curl_off_t ultotal, curl_off_t ulnow)
+{
+  struct curlProgress *progressData = (struct curlProgress *)p;
+  CURL *curl = progressData->curl;
+  curl_off_t curtime = 0;
+  curl_off_t avgDnlRateBs = 0;
+  float percent = 0;
+  float dnlRateMbs = 0;
+
+  curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME_T, &curtime);
+  /*  run every half a second */
+  if((curtime - progressData->lastruntime) >= 500000) {
+    progressData->lastruntime = curtime;
+
+    /* calculate percentage*/
+    percent =     (float)dlnow / (float)dltotal *100;
+    //fprintf(stderr, "Percent: %f\r\n",percent);
+
+    /* update  views */
+    HWND hpb = GetDlgItem(g_hwndRepUpd, PBM_DONWLOAD);
+    SendMessage(hpb, PBM_SETPOS, (WPARAM)percent, 0);
+    GME_RepoDnl_SetItemProgress(g_GME_ReposDnl_List[g_ReposQry_Id].name, percent);
+
+    /* get download speed */
+    curl_easy_getinfo(curl, CURLINFO_SPEED_DOWNLOAD_T , &avgDnlRateBs);
+    dnlRateMbs = (float)avgDnlRateBs / 1024 / 1024;
+
+    /* update item in list view */
+    char buff[64];
+    sprintf(buff, "%.1f MB/s",dnlRateMbs);
+    SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, buff);
+  }
+  if (g_ReposQry_Cancel == true)
+  {
+       GME_Logs(GME_LOG_WARNING, "GME_RepoDnl_OnDnlCurl", "Download", "Canceled by user");
+       return 1;
+  }
+
+  return 0;
+}
+
 void GME_RepoDnl_OnSav(const wchar_t* path)
 {
   HWND hpb = GetDlgItem(g_hwndRepUpd, PBM_DONWLOAD);
   SendMessage(hpb, PBM_SETPOS, (WPARAM)100, 0);
-  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- Kio/s");
+  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
   /* delete old file */
   std::wstring mod_path = GME_GameGetCurModsPath() + L"\\";
   mod_path += g_GME_ReposDnl_List[g_ReposQry_Id].name;
@@ -733,12 +776,12 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
 
   HWND hpb = GetDlgItem(g_hwndRepUpd, PBM_DONWLOAD);
 
-  int http_err;
+  CURLcode curl_result;
   int http_fail = 0;
   std::string err_msg;
 
-  for(unsigned i = 0; i < g_GME_ReposDnl_List.size(); i++) {
-
+  for(unsigned i = 0; i < g_GME_ReposDnl_List.size(); i++)
+  {
     g_ReposQry_Id = i;
 
     /* disabling old version before download */
@@ -750,59 +793,48 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
     EnableWindow(GetDlgItem(g_hwndRepUpd, BTN_CANCEL), true);
     GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Downloading...");
     GME_Logs(GME_LOG_NOTICE, "GME_RepoQueryDnl_Th", "Downloading", g_GME_ReposDnl_List[i].url);
-    http_err = GME_NetwHttpGET(g_GME_ReposDnl_List[i].url, GME_RepoDnl_OnErr, GME_RepoDnl_OnDnl, GME_RepoDnl_OnSav, GME_GameGetCurModsPath());
-    if(http_err) {
+
+    curl_result = GME_NetwHttpGETCurl(g_GME_ReposDnl_List[i].url, GME_RepoDnl_OnErr, GME_RepoDnl_OnDnlCurl, GME_RepoDnl_OnSav, GME_GameGetCurModsPath());
+    if(curl_result)
+    {
+      /* error received from curl */
+      bool showdialog = true;
       http_fail++;
-      if(http_err < 10) {
-        err_msg = "Download failed for '" + GME_StrToMbs(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
-        switch(http_err)
-        {
-        case GME_HTTPGET_ERR_DNS:
-          GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Host not found");
-          GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", "Host not found");
-          err_msg += "Host not found";
-          break;
-        case GME_HTTPGET_ERR_CNX:
-          GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Connection error");
-          GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", "Connection error");
-          err_msg += "Connection error";
-          break;
-        case GME_HTTPGET_ERR_ENC:
-          GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"HTTP transfer error");
-          GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", "HTTP transfer error");
-          err_msg += "HTTP transfer error";
-          break;
-        case GME_HTTPGET_ERR_REC:
-          GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Connection lost");
-          GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", "Connection lost");
-          err_msg += "Connection lost";
-          break;
-        case GME_HTTPGET_ERR_FOP:
-          GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"I/O Open error");
-          GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", "I/O Open error");
-          err_msg += "I/O Open error";
-          break;
-        case GME_HTTPGET_ERR_FWR:
-          GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"I/O Write error");
-          GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", "I/O Write error");
-          err_msg += "I/O Write error";
-          break;
-        }
+      err_msg = "Download failed for '" + GME_StrToMbs(g_GME_ReposDnl_List[i].name) + "':\r\n\r\n    ";
+      switch(curl_result)
+      {
+      case CURLE_FTP_COULDNT_USE_REST:
+        /* abused error code to mark file open error */
+        err_msg += "Can't open temp file for download.";
+        GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Can't open temp file for download.", "I/O Write error");
+        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"I/O Write error");
+        break;
+      case CURLE_ABORTED_BY_CALLBACK:
+        showdialog = false;
+        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Aborted by user");
+        GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download aborted", "Aborted by user");
+        err_msg += "Aborted by user";
+        break;
+      default:
+        const char* curl_err_msg = curl_easy_strerror(curl_result);
+        err_msg += curl_err_msg;
+        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"Download error");
+        GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", curl_err_msg);
+        break;
+      }
+      if (showdialog)
+      {
         GME_DialogWarning(g_hwndRepUpd, GME_StrToWcs(err_msg));
-      } else {
-        err_msg = "HTTP error ";
-        err_msg += std::to_string(http_err);
-        GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, GME_StrToWcs(err_msg).c_str());
-        GME_Logs(GME_LOG_WARNING, "GME_RepoQueryDnl_Th", "Download failed", err_msg.c_str());
-        GME_DialogWarning(g_hwndRepUpd, L"Download failed for '" + std::wstring(g_GME_ReposDnl_List[i].name) + L"':\r\n\r\n    " + GME_StrToWcs(err_msg));
       }
     }
 
-    if(g_ReposQry_Cancel) {
+    if(g_ReposQry_Cancel)
+    {
       SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
-      SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- Kio/s");
+      SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
 
-      for(unsigned i = 0; i < g_GME_ReposDnl_List.size(); i++) {
+      for(unsigned i = 0; i < g_GME_ReposDnl_List.size(); i++)
+      {
         GME_RepoDnl_SetItemStatus(g_GME_ReposDnl_List[i].name, L"");
         GME_RepoDnl_SetItemProgress(g_GME_ReposDnl_List[i].name, -1);
       }
@@ -816,11 +848,10 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
 
       return 0;
     }
-
   }
 
   SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
-  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- Kio/s");
+  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
 
   g_GME_ReposDnl_List.clear();
 

@@ -31,6 +31,7 @@
 #include "gme_dlg_prof.h"
 #include "gme_dlg_game.h"
 #include "gme_dlg_main.h"
+#include <ctime>
 
 /*
   function for main init, startup process
@@ -78,6 +79,7 @@ void GME_MainInit()
   /* create colums in list view */
   wchar_t buff[64];
   LVCOLUMNW lvcol;
+  std::string info_msg;
   memset(&lvcol, 0, sizeof(LV_COLUMNW));
   lvcol.mask = LVCF_TEXT|LVCF_WIDTH;
   lvcol.cchTextMax = 255;
@@ -100,6 +102,24 @@ void GME_MainInit()
   SendMessage(GetDlgItem(g_hwndMain, ENT_MODDESC), WM_SETFONT, (WPARAM)Lucida, 1);
 
   SetWindowPos(g_hwndMain, NULL, GME_ConfGetWinX(), GME_ConfGetWinY(), GME_ConfGetWinW(), GME_ConfGetWinH(), SWP_NOZORDER);
+
+  time_t ttime = time(0);
+  tm *local_time = localtime(&ttime);
+
+  info_msg = "TEST VERSION -- TEST VERSION -- TEST VERSION\r\n\r\n";
+  info_msg += "Report any issues to VFA-146 Solid on VNAO or CVW-14 discord\r\n\r\n";
+
+  if (1900+local_time->tm_year > 2021 && local_time->tm_mon+1 > 5)
+  {
+    info_msg += "This version expired on 2022-05-31 ";
+    GME_DialogInfo(g_hwndMain, GME_StrToWcs(info_msg));
+    exit(1);
+  }
+  else
+  {
+    info_msg += "This version expires on 2022-05-31 ";
+    GME_DialogInfo(g_hwndMain, GME_StrToWcs(info_msg));
+  }
 }
 
 /*

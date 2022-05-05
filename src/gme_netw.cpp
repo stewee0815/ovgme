@@ -18,6 +18,7 @@
 #include "gme_logs.h"
 #include "pugixml.hpp"
 
+
 /* structure for common url */
 struct GME_Url_Struct
 {
@@ -436,7 +437,7 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
   send(sock, http_req, strlen(http_req), 0);
 
   /* stuff to receive data */
-  char recv_buff[4096];
+  char recv_buff[8192];
   int recv_size;
 
   /* receiving HTTP response (or not) */
@@ -644,6 +645,13 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
 
 
 
+static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
+{
+  size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
+  return written;
+}
+
+
 /*
   function to send GET Http request to a server.
 */
@@ -685,8 +693,10 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
   send(sock, http_req, strlen(http_req), 0);
 
   /* stuff to receive data */
-  char recv_buff[4096];
+  char recv_buff[8192];
   int recv_size;
+  /* buffer for file write operations*/
+  char write_buff[8192];
 
   /* receiving HTTP response (or not) */
   recv_size = recv(sock, recv_buff, sizeof(recv_buff), 0);
@@ -787,7 +797,7 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
         return GME_HTTPGET_ERR_REC;
       }
 
-      if(fwrite(&recv_buff, 1, recv_size, fp) != recv_size) {
+     if(fwrite(&recv_buff, 1, recv_size, fp) != recv_size) {
         closesocket(sock); WSACleanup();
         fclose(fp); GME_FileDelete(file_path);
         if(on_err) on_err(url_str);
@@ -819,4 +829,80 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
 
   return 0; // success
 }
+
+CURLcode GME_NetwHttpGETCurl(const char* url_str, const GME_NetwGETOnErr on_err, const GME_NetwGETOnDnlCurl on_dnl, const GME_NetwGETOnSav on_sav, const std::wstring& path)
+{
+  CURL *curl_handle;
+  CURLcode res = CURLE_OK;
+  FILE *pagefile;
+  struct curlProgress prog;
+
+  /* parse url */
+  GME_Url_Struct url = GME_NetwParseUrl(url_str);
+
+  /* open temporary file for writing */
+  std::wstring file_path = path + L"\\";
+  //file_path += GME_StrToWcs(GME_NetwDecodeUrl(url.file));
+  file_path += GME_StrToWcs(url.file);
+  file_path += L".down";
+
+  FILE* fp = _wfopen(file_path.c_str(), L"wb");
+  if(!fp) {
+    //call error callback?-------------------
+    if(on_err) on_err(url_str);
+    return CURLE_FTP_COULDNT_USE_REST;  // yeah, that's bad. We'll probably never use REST, so we abuse this error code. Blame me.
+  }
+  curl_global_init(CURL_GLOBAL_ALL);
+
+  /* init the curl session */
+  curl_handle = curl_easy_init();
+
+  if(curl_handle) {
+    prog.lastruntime = 0;
+    prog.curl = curl_handle;
+  }
+  /* set URL to get here */
+  curl_easy_setopt(curl_handle, CURLOPT_URL, url_str);
+
+  /* Switch on full protocol/debug output while testing */
+  curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+
+  curl_easy_setopt(curl_handle, CURLOPT_XFERINFOFUNCTION, on_dnl);
+  curl_easy_setopt(curl_handle, CURLOPT_XFERINFODATA, &prog);
+  curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
+
+  /* send all data to this function  */
+  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+
+    /* write the page body to this file handle */
+    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, fp);
+
+    /* get it! */
+    res = curl_easy_perform(curl_handle);
+
+    if(res != CURLE_OK)
+        fprintf(stderr, "%s\n", curl_easy_strerror(res));
+
+    /* close the header file */
+     fclose(fp);
+
+    /* cleanup curl stuff */
+    curl_easy_cleanup(curl_handle);
+
+    curl_global_cleanup();
+
+    if(res == CURLE_OK )
+    {
+        /* send downloaded file path to callback */
+        if(on_sav) on_sav(file_path.c_str());
+    }
+    else
+    {
+        /* delete the temp file */
+        GME_FileDelete(file_path);
+    }
+
+    return res;
+}
+
 
