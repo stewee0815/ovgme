@@ -26,16 +26,24 @@
 #define GME_HTTPGET_ERR_FOP 6
 #define GME_HTTPGET_ERR_FWR 7
 
+
 bool GME_NetwIsUrl(const char* str);
 std::string GME_NetwEncodeUrl(const char* url);
 std::string GME_NetwEncodeUrl(const std::string& url);
 
 typedef void(*GME_NetwGETOnErr)(const char* url);
 typedef bool(*GME_NetwGETOnDnl)(unsigned percent, unsigned rate);
+typedef int (*GME_NetwGETOnDnlCurl)(void *p, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
 typedef void(*GME_NetwGETOnEnd)(const char* body, size_t body_size);
 typedef void(*GME_NetwGETOnSav)(const wchar_t* path);
 
+struct curlProgress {
+  curl_off_t lastruntime;
+  CURL *curl;
+};
+
 int GME_NetwHttpGET(const char* url, const GME_NetwGETOnErr, const GME_NetwGETOnDnl, const GME_NetwGETOnEnd);
 int GME_NetwHttpGET(const char* url, const GME_NetwGETOnErr, const GME_NetwGETOnDnl, const GME_NetwGETOnSav, const std::wstring& path);
+CURLcode GME_NetwHttpGETCurl(const char* url, const GME_NetwGETOnErr, const GME_NetwGETOnDnlCurl, const GME_NetwGETOnSav, const std::wstring& path);
 
 #endif // GME_NETW_H_INCLUDED

@@ -426,7 +426,7 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
   }
 
   /* create HTTP request */
-  char http_req[256];
+  char http_req[600];
   if(strlen(url.path)) {
     sprintf(http_req, "GET %s HTTP/1.1\r\nHost: %s \r\n\r\n", url.path, url.host);
   } else {
@@ -682,7 +682,7 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
   }
 
   /* create HTTP request */
-  char http_req[256];
+  char http_req[600];
   if(strlen(url.path)) {
     sprintf(http_req, "GET %s HTTP/1.1\r\nHost: %s \r\n\r\n", url.path, url.host);
   } else {
@@ -695,8 +695,6 @@ int GME_NetwHttpGET(const char* url_str, const GME_NetwGETOnErr on_err, const GM
   /* stuff to receive data */
   char recv_buff[8192];
   int recv_size;
-  /* buffer for file write operations*/
-  char write_buff[8192];
 
   /* receiving HTTP response (or not) */
   recv_size = recv(sock, recv_buff, sizeof(recv_buff), 0);
@@ -834,7 +832,6 @@ CURLcode GME_NetwHttpGETCurl(const char* url_str, const GME_NetwGETOnErr on_err,
 {
   CURL *curl_handle;
   CURLcode res = CURLE_OK;
-  FILE *pagefile;
   struct curlProgress prog;
 
   /* parse url */

@@ -49,7 +49,6 @@ void GME_DglModsQuickMakeInit()
 
   /* get current mod list selection */
   std::wstring name;
-  int type;
   wchar_t name_buff[255];
 
   LV_ITEMW lvitm;
@@ -66,7 +65,6 @@ void GME_DglModsQuickMakeInit()
       lvitm.iItem = i;
       SendMessageW(hlv ,LVM_GETITEMW, 0, (LPARAM)&lvitm);
       name = lvitm.pszText;
-      type = lvitm.iImage;
       found = true;
       break; // single selection
     }

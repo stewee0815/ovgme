@@ -145,7 +145,7 @@ struct GME_ReposMod_Struct
     memset(&version, 0, sizeof(GME_ModVers_Struct));
   }
 
-  clear() {
+  void clear() {
     memset(name, 0, 255*sizeof(wchar_t));
     memset(url, 0, 255);
     memset(&version, 0, sizeof(GME_ModVers_Struct));
@@ -268,7 +268,7 @@ bool GME_RepoChkList()
     }
   }
 
-  while(item.hItem = TreeView_GetNextItem(htv, item.hItem, TVGN_NEXT)) {
+  while((item.hItem = TreeView_GetNextItem(htv, item.hItem, TVGN_NEXT))) {
     SendMessage(htv, TVM_GETITEM, 0, (LPARAM)&item);
     for(unsigned i = 0; i < g_GME_Repos_List.size(); i++) {
       if(!strcmp(g_GME_Repos_List[i].url, item.pszText)) {

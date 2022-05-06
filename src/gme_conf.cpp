@@ -167,7 +167,7 @@ std::wstring GME_ConfGetLastGame()
 */
 void GME_ConfResetLastGame()
 {
-  memset(&g_ConfCfg.last_game, 0, 64);
+  memset(&g_ConfCfg.last_game, 0, sizeof(g_ConfCfg.last_game));
 }
 
 /*

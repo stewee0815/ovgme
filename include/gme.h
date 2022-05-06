@@ -39,6 +39,12 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#ifndef CURL_STATICLIB
+#define CURL_STATICLIB
+#endif
+
+#include <curl.h>
+
 /*
   Mini lib for Zip implementation, found here:
     https://code.google.com/archive/p/miniz/
@@ -56,7 +62,7 @@ typedef unsigned char ubyte;
 #include "../resource.h"
 
 #define GPL_HEADER L"\
-This program is free software: you canredistribute it and/or modify \
+This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published \
 by the Free Software Foundation, either version 3 of the License, or \
 (at your option) any later version.\
@@ -70,9 +76,9 @@ along with this program. If not, see http://www.gnu.org/licenses/"
 // global defines
 #define GME_APP_NAME      L"OvGME"
 #define GME_APP_MAJOR     1
-#define GME_APP_MINOR     7
-#define GME_APP_REVIS     4
-#define GME_APP_DATE      L"November 2017"
+#define GME_APP_MINOR     8
+#define GME_APP_REVIS     0
+#define GME_APP_DATE      L"May 2022"
 
 /* handle for folder changes tracking */
 extern HANDLE      g_hChange;

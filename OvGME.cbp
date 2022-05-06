@@ -70,7 +70,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O3" />
-					<Add option="-std=c++11" />
+					<Add option="-pedantic" />
+					<Add option="-Wall" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -89,6 +90,7 @@
 		<Linker>
 			<Add option="-static-libstdc++" />
 			<Add option="-static-libgcc" />
+			<Add option="-static" />
 			<Add library="Comctl32" />
 			<Add library="Gdi32" />
 			<Add library="Shlwapi" />
@@ -136,7 +138,6 @@
 		<Unit filename="include/thirdparty/pugixml/pugiconfig.hpp" />
 		<Unit filename="include/thirdparty/pugixml/pugixml.hpp" />
 		<Unit filename="include/thirdparty/xxhash/xxhash.h" />
-		<Unit filename="lib/libcurl.a" />
 		<Unit filename="main.cpp" />
 		<Unit filename="manifest.xml" />
 		<Unit filename="resource.h" />

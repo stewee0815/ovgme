@@ -148,15 +148,12 @@ void GME_MainPopMenuMods()
     lvitm.cchTextMax = 255;
     lvitm.pszText = name_buff;
 
-    bool found = false;
-
     unsigned c = SendMessageW(hlv, LVM_GETITEMCOUNT, 0, 0);
     for(unsigned i = 0; i < c; i++) {
       if(SendMessageW(hlv, LVM_GETITEMSTATE, i, LVIS_SELECTED)) {
         lvitm.iItem = i;
         SendMessageW(hlv ,LVM_GETITEMW, 0, (LPARAM)&lvitm);
         type = lvitm.iImage;
-        found = true;
         break; // single selection
       }
     }
