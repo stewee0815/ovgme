@@ -683,7 +683,7 @@ void GME_RepoDnl_OnErr(const char* url)
 {
   HWND hpb = GetDlgItem(g_hwndRepUpd, PBM_DONWLOAD);
   SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
-  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
+  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MBit/s");
   GME_RepoDnl_SetItemProgress(g_GME_ReposDnl_List[g_ReposQry_Id].name, -1);
 }
 
@@ -726,11 +726,11 @@ static int GME_RepoDnl_OnDnlCurl(void *p,
 
     /* get download speed */
     curl_easy_getinfo(curl, CURLINFO_SPEED_DOWNLOAD_T , &avgDnlRateBs);
-    dnlRateMbs = (float)avgDnlRateBs / 1024 / 1024;
+    dnlRateMbs = (float)avgDnlRateBs / 1024 / 1024 * 8;
 
     /* update item in list view */
     char buff[64];
-    sprintf(buff, "%.1f MB/s",dnlRateMbs);
+    sprintf(buff, "%.1f MBit/s",dnlRateMbs);
     SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, buff);
   }
   if (g_ReposQry_Cancel == true)
@@ -746,7 +746,7 @@ void GME_RepoDnl_OnSav(const wchar_t* path)
 {
   HWND hpb = GetDlgItem(g_hwndRepUpd, PBM_DONWLOAD);
   SendMessage(hpb, PBM_SETPOS, (WPARAM)100, 0);
-  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
+  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MBit/s");
   /* delete old file */
   std::wstring mod_path = GME_GameGetCurModsPath() + L"\\";
   mod_path += g_GME_ReposDnl_List[g_ReposQry_Id].name;
@@ -831,7 +831,7 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
     if(g_ReposQry_Cancel)
     {
       SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
-      SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
+      SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MBit/s");
 
       for(unsigned i = 0; i < g_GME_ReposDnl_List.size(); i++)
       {
@@ -851,7 +851,7 @@ DWORD WINAPI GME_RepoQueryDnl_Th(void* args)
   }
 
   SendMessage(hpb, PBM_SETPOS, (WPARAM)0, 0);
-  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MB/s");
+  SetDlgItemText(g_hwndRepUpd, TXT_DOWNSPEED, "---- MBit/s");
 
   g_GME_ReposDnl_List.clear();
 
