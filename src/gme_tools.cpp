@@ -55,25 +55,49 @@ std::string GME_GetLastErrorStr()
 std::wstring GME_DirPathToName(const std::wstring& path)
 {
   size_t sep_pos;
-  sep_pos = path.find_last_of('\\');
-  return path.substr(sep_pos+1, -1);
+  std::wstring strippedPath = GME_StripPathSeparator(path);
+
+  sep_pos = strippedPath.find_last_of('\\');
+  return strippedPath.substr(sep_pos+1, -1);
 }
 
 std::wstring GME_DirPathToName(const wchar_t* cpath)
 {
   size_t sep_pos;
   std::wstring path = cpath;
-  sep_pos = path.find_last_of('\\');
-  return path.substr(sep_pos+1, -1);
+  std::wstring strippedPath = GME_StripPathSeparator(path);
+
+  sep_pos = strippedPath.find_last_of('\\');
+  return strippedPath.substr(sep_pos+1, -1);
 }
 
 std::string GME_DirPathToName(const std::string& path)
 {
   size_t sep_pos;
-  sep_pos = path.find_last_of('\\');
-  return path.substr(sep_pos+1, -1);
+  std::string strippedPath = GME_StripPathSeparator(path);
+
+  sep_pos = strippedPath.find_last_of('\\');
+  return strippedPath.substr(sep_pos+1, -1);
 }
 
+/* strip trailing path separator*/
+std::wstring GME_StripPathSeparator(const std::wstring& path)
+{
+  if( path.back() == '\\' || path.back() == '/' )
+  {
+      return path.substr(0, path.length()-1);
+  }
+  return path;
+}
+
+std::string GME_StripPathSeparator(const std::string& path)
+{
+  if( path.back() == '\\' || path.back() == '/' )
+  {
+      return path.substr(0, path.length()-1);
+  }
+  return path;
+}
 /*
   function to extract the name of a file. This simply take the file name
   without the full path and without the file extension.

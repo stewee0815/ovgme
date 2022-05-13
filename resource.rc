@@ -146,11 +146,12 @@ CAPTION "OvGME About"
 FONT 8, "Ms Shell Dlg"
 {
     CTEXT           "Static", TXT_GPL, 7, 98, 249, 100, SS_CENTER, WS_EX_LEFT
-    CTEXT           "https://github.com/sedenion/ovgme", 0, 7, 76, 249, 9, SS_CENTER, WS_EX_LEFT
+    CTEXT           "https://github.com/VNAO-Solid/ovgme", 0, 7, 76, 249, 9, SS_CENTER, WS_EX_LEFT
     CTEXT           "Version:", TXT_VERSION, 7, 44, 249, 9, SS_CENTER, WS_EX_LEFT
     CONTROL         IDB_LOGO, 0, WC_STATIC, SS_BITMAP, 83, 7, 95, 35, WS_EX_LEFT
     DEFPUSHBUTTON   "Close", IDOK, 107, 203, 50, 14, 0, WS_EX_LEFT
     CTEXT           "Copyright (c) 2016 Eric M.", 0, 7, 55, 249, 9, SS_CENTER, WS_EX_LEFT
+    CTEXT           "Edited by Solid 2022.", 0, 7, 65, 249, 9, SS_CENTER, WS_EX_LEFT
 }
 
 
@@ -359,7 +360,7 @@ FONT 8, "Ms Shell Dlg"
     PUSHBUTTON      "Close", BTN_CLOSE, 443, 379, 50, 14, 0, WS_EX_LEFT
     CONTROL         "", LVM_MODSUPDLIST, WC_LISTVIEW, WS_TABSTOP | WS_BORDER | LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | LVS_REPORT, 13, 56, 475, 209, WS_EX_LEFT
     CONTROL         "", PBM_DONWLOAD, PROGRESS_CLASS, 0, 13, 267, 372, 12, WS_EX_LEFT
-    LTEXT           "---- Kio/s", TXT_DOWNSPEED, 390, 268, 43, 11, SS_LEFT, WS_EX_LEFT
+    LTEXT           "---- MBit/s", TXT_DOWNSPEED, 390, 268, 43, 11, SS_LEFTNOWORDWRAP, WS_EX_LEFT
     GROUPBOX        "", BOX_MAIN, 7, 45, 486, 332, 0, WS_EX_LEFT
     PUSHBUTTON      "Download all", BTN_REPOUPDALL, 85, 282, 70, 14, 0, WS_EX_LEFT
     PUSHBUTTON      "Download selected", BTN_REPOUPDSEL, 13, 282, 70, 14, 0, WS_EX_LEFT

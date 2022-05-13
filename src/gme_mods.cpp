@@ -1391,10 +1391,6 @@ DWORD WINAPI GME_ModsMake_Th(void* args)
     return 0;
   }
 
-  FILE* fp;
-  size_t fs;
-  ubyte* data;
-
   std::string a_name;
   std::string f_name;
 
@@ -1569,7 +1565,12 @@ void GME_ModsMakeArchive(const std::wstring& src_dir, const std::wstring& dst_pa
   std::wstring zip_name = mod_name + L".zip";
   std::wstring txt_name = L"README.txt";
   std::wstring ver_name = L"VERSION.txt";
-  std::wstring zip_path = dst_path + L"\\" + zip_name;
+  std::wstring stripped_zip_path;
+  std::wstring zip_path;
+
+  stripped_zip_path = GME_StripPathSeparator(dst_path);
+  zip_path = stripped_zip_path + L"\\" + zip_name;
+
   std::string txt_data;
   if(!desc.empty()) txt_data = GME_StrToMbs(desc);
   std::string ver_data;

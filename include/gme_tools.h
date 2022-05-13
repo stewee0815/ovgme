@@ -24,6 +24,8 @@ std::string GME_GetLastErrorStr();
 std::wstring GME_DirPathToName(const std::wstring& path);
 std::wstring GME_DirPathToName(const wchar_t* cpath);
 std::string GME_DirPathToName(const std::string& path);
+std::wstring GME_StripPathSeparator(const std::wstring& path);
+std::string GME_StripPathSeparator(const std::string& path);
 std::wstring GME_FilePathToName(const std::wstring& path);
 std::wstring GME_FilePathToName(const wchar_t* cpath);
 std::string GME_FilePathToName(const std::string& path);
