@@ -33,6 +33,8 @@
 #include "gme_dlg_main.h"
 #include <ctime>
 
+//#define TEST_VERSION
+
 /*
   function for main init, startup process
 */
@@ -103,6 +105,7 @@ void GME_MainInit()
 
   SetWindowPos(g_hwndMain, NULL, GME_ConfGetWinX(), GME_ConfGetWinY(), GME_ConfGetWinW(), GME_ConfGetWinH(), SWP_NOZORDER);
 
+  #ifdef TEST_VERSION
   time_t ttime = time(0);
   tm *local_time = localtime(&ttime);
 
@@ -120,6 +123,8 @@ void GME_MainInit()
     info_msg += "This version expires on 2022-05-31 ";
     GME_DialogInfo(g_hwndMain, GME_StrToWcs(info_msg));
   }
+
+  #endif // TEST_VERSION
 }
 
 /*
