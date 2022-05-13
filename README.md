@@ -1,8 +1,12 @@
 ----------------------------------------------------------------------------------------
-#OvGME
+OvGME
 Enhanced Generic Mod Enabler and manager.
 ----------------------------------------------------------------------------------------
-Version: 1.8.0
+**Version: 1.8.0, May 2022**
+- increased repository download speed (limited only(?) by the repo server and your ISP)
+- no installer anymore, sorry.
+- based on the last version released some years ago
+
 ----------------------------------------------------------------------------------------
 
 Home page: https://github.com/VNAO-Solid/ovgme
@@ -10,6 +14,9 @@ Home page: https://github.com/VNAO-Solid/ovgme
 Credits:
 ----------------------------------------------------------------------------------------
 All credits to Sedenion (Eri M.?). He created this wonderful tool afaik.
+
+He is working on a new mod manager called "Open Mod Manager" (https://github.com/sedenion/OpenModMan).
+Check it out regularly in order not to miss switching from OvGME to this new tool!
 
 Presentation
 ----------------------------------------------------------------------------------------
@@ -35,7 +42,7 @@ OvGME implements the following key features:
 - Detailed embedded Help.
 
 
-###If you already use JSGME
+If you already use JSGME
 Please read carefully the "OvGME and JSGME" chapter in the embedded help before doing
 anything.
 
@@ -47,7 +54,7 @@ Third party libraries
 ----------------------------------------------------------------------------------------
 
 
-OvGME uses curl to download files:
+OvGME >=v1.8.0 uses curl to download files:
 
 CURL COPYRIGHT AND PERMISSION NOTICE
 
