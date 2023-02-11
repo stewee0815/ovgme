@@ -1,0 +1,28 @@
+name: CMake Build on Windows
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Visual Studio
+      uses: microsoft/setup-visualstudio@v1
+      with:
+        vs-version: "VS16"
+
+    - name: Configure and build with CMake
+      run: |
+        call "C:\Program Files (x86)\Microsoft Visual Studio\${env.MSVC}\VC\Auxiliary\Build\vcvarsall.bat" x64
+        cmake -B build -S . -G "Visual Studio 16 2019" -A x64
+        cmake --build build --config Release
+
+    - name: Run tests
+      run: |
+        cmake --build build --config Release --target ovgme
