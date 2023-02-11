@@ -13,7 +13,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up Visual Studio
-      uses: microsoft/setup-visualstudio@v1
+      uses: actions/setup-windows@v2
       with:
         vs-version: "VS16"
 
