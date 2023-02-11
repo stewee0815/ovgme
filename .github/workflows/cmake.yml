@@ -39,3 +39,6 @@ jobs:
 
     - name: CMake build
       run: cmake --build build
+      
+    - name: Download all workflow run artifacts
+      uses: actions/download-artifact@v3
