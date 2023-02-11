@@ -27,6 +27,7 @@ struct GME_Url_Struct
   char port[64];
   char path[256];
   char file[256];
+  char encoded_url[512];
 };
 
 /* http response header structure */
@@ -248,6 +249,9 @@ GME_Url_Struct GME_NetwParseUrl(const char* url_str)
   strcpy(url.port, port.c_str());
   strcpy(url.path, path.c_str());
   if(!file.empty()) strcpy(url.file, file.c_str());
+
+  // set original url
+  strcpy(url.encoded_url, str.c_str());
 
   return url;
 }
@@ -859,7 +863,7 @@ CURLcode GME_NetwHttpGETCurl(const char* url_str, const GME_NetwGETOnErr on_err,
     prog.curl = curl_handle;
   }
   /* set URL to get here */
-  curl_easy_setopt(curl_handle, CURLOPT_URL, url_str);
+  curl_easy_setopt(curl_handle, CURLOPT_URL, url.encoded_url);
 
   /* Switch on full protocol/debug output while testing */
   curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
