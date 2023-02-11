@@ -1,28 +1,39 @@
-name: CMake Build on Windows
-
+name: CI
+# Workflow file for windows
 on:
   push:
-    branches: [master]
+    branches:
+      - master
+  pull_request: {}
 
 jobs:
-  build:
-    runs-on: windows-latest
+  Windows:
+    name: build-windows
+    runs-on: [self-hosted, windows]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Visual Studio
-      uses: actions/setup-windows@v2
+    - name: Checkout
+      uses: actions/checkout@v1
       with:
-        vs-version: "VS16"
+          submodules: recursive
 
-    - name: Configure and build with CMake
+    - name: Installing vcpkg (windows)
       run: |
-        call "C:\Program Files (x86)\Microsoft Visual Studio\${env.MSVC}\VC\Auxiliary\Build\vcvarsall.bat" x64
-        cmake -B build -S . -G "Visual Studio 16 2019" -A x64
-        cmake --build build --config Release
+        cd ..
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        git checkout --force 2020.01
+        .\bootstrap-vcpkg.bat
+        .\vcpkg.exe install cppzmq:x64-windows
 
-    - name: Run tests
+    - name: Running cmake (windows)
       run: |
-        cmake --build build --config Release --target ovgme
+        cd ${{ github.workspace }}
+        mkdir build
+        cd build
+        cmake .. 
+
+    - name: Build Solution (windows)
+      run: |
+        cd build
+        MSBuild.exe ovgme.sln
